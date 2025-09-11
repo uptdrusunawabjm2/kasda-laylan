@@ -20,7 +20,7 @@
     .title { font-size: clamp(22px, 4vw, 30px); font-weight: 700; letter-spacing: .2px; }
     .sub { color: var(--muted); margin-top: 6px; }
 
-    .toolbar { display: grid; grid-template-columns: 1fr 200px auto; gap: 10px; margin-top: 18px; }
+    .toolbar { display: grid; grid-template-columns: 1fr 200px 200px auto auto; gap: 10px; margin-top: 18px; }
     .input, .select { background: var(--card); border: 1px solid var(--line); color: var(--text); border-radius: 10px; padding: 10px 12px; outline: none; }
     .btn { border: 1px solid var(--line); background: var(--card); color: var(--text); padding: 10px 14px; border-radius: 12px; cursor: pointer; transition: .15s ease; }
     .btn:hover { border-color: #2b3344; transform: translateY(-1px); }
@@ -41,8 +41,28 @@
 </head>
 <body>
   <div class="wrap">
-    <div class="title">TEST DARI 100<span class="chip">update–10-09-2025</span></div>
+    <div class="title">TEST DARI 100<span class="chip">update–11-09-2025</span></div>
     <div class="sub"><em>data ini bersifat dinamis mengikuti kondisi terkini</em></div>
+
+    <!-- Tabel Statis -->
+    <div class="card table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Total Tunggakan</th>
+            <th>Total Pelunasan</th>
+            <th>Sisa Tunggakan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td id="staticTotalUang">0</td>
+            <td id="staticTotalPelunasan">0</td>
+            <td id="staticSisa">0</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
 
     <div class="toolbar">
       <input id="search" class="input" placeholder="Cari nomor unit / nama…" />
@@ -52,6 +72,8 @@
         <option value="Sebagian">Sebagian</option>
         <option value="Belum Bayar">Belum Bayar</option>
       </select>
+      <input id="dateFilter" type="date" class="input" />
+      <button id="btnReset" class="btn">Reset</button>
       <button id="btnPencairan" class="btn primary">Buka Pencairan</button>
     </div>
 
@@ -88,7 +110,7 @@
   <script>
     // ======= DATA asli tetap sama =======
     const DATA = [
-    { unit: "GM-A1.01", nama: "AHMAD FADLIANSYAH (KELUAR)", bulan: 2, uang: 387600, pelunasan: 0, tgl: " " },
+          { unit: "GM-A1.01", nama: "AHMAD FADLIANSYAH (KELUAR)", bulan: 2, uang: 387600, pelunasan: 0, tgl: " " },
 { unit: "GM-A1.01", nama: "RAHMAD NOOR	", bulan: 0, uang: 0, pelunasan: 0, tgl: " " },
 { unit: "GM-A1.02", nama: "MUHAMMAD RAMLI", bulan: 1, uang: 193800, pelunasan: 0, tgl: " " },
 { unit: "GM-A1.03", nama: "FAISAL", bulan: 3, uang: 581400, pelunasan: 0, tgl: " " },
@@ -318,10 +340,10 @@
 { unit: "GM-C1.07", nama: "MUHAMMAD JULIANTO", bulan: 3, uang: 887400, pelunasan: 0, tgl: " " },
 { unit: "GM-C1.08", nama: "DWI FITRI YANTO", bulan: 3, uang: 887400, pelunasan: 0, tgl: " " },
 { unit: "GM-C1.09", nama: "RUMAINUR ANWAR FUAN", bulan: 4, uang: 1183200, pelunasan: 0, tgl: " " },
-{ unit: "GM-C1.10", nama: "MOCHAMAD SULKAN", bulan: 5, uang: 1479000, pelunasan: 0, tgl: " " },
+{ unit: "GM-C1.10", nama: "MOCHAMAD SULKAN", bulan: 5, uang: 1479000, pelunasan: 1479000, tgl: "2025-09-11" },
 { unit: "GM-C1.11", nama: "ANANDA RIZKY PERDANA", bulan: 4, uang: 1183200, pelunasan: 0, tgl: " " },
 { unit: "GM-C1.12", nama: "MUHAMMAD ARBAIN", bulan: 3, uang: 887400, pelunasan: 0, tgl: " " },
-{ unit: "GM-C1.13", nama: "MA'RUP", bulan: 5, uang: 1479000, pelunasan: 0, tgl: " " },
+{ unit: "GM-C1.13", nama: "MA'RUP", bulan: 5, uang: 1479000, pelunasan: 1479000, tgl: "2025-09-11" },
 { unit: "GM-C1.14", nama: "FITRIYANA", bulan: 2, uang: 591600, pelunasan: 0, tgl: " " },
 { unit: "GM-C1.15", nama: "RAHMAN", bulan: 0, uang: 0, pelunasan: 0, tgl: " " },
 { unit: "GM-C1.16", nama: " ", bulan: 0, uang: 0, pelunasan: 0, tgl: " " },
@@ -341,7 +363,7 @@
 { unit: "GM-C2.04", nama: "ARBAIN (KELUAR)", bulan: 0, uang: 0, pelunasan: 0, tgl: " " },
 { unit: "GM-C2.04", nama: "NOR HAIRI", bulan: 1, uang: 275400, pelunasan: 0, tgl: " " },
 { unit: "GM-C2.05", nama: "RONI", bulan: 3, uang: 826200, pelunasan: 0, tgl: " " },
-{ unit: "GM-C2.06", nama: "MUHAMMAD RIDHANI", bulan: 6, uang: 1652400, pelunasan: 0, tgl: " " },
+{ unit: "GM-C2.06", nama: "MUHAMMAD RIDHANI", bulan: 6, uang: 1652400, pelunasan: 1652400, tgl: "2025-09-11" },
 { unit: "GM-C2.07", nama: "SYARIPUDIN", bulan: 6, uang: 1652400, pelunasan: 0, tgl: " " },
 { unit: "GM-C2.08", nama: " ", bulan: 0, uang: 0, pelunasan: 0, tgl: " " },
 { unit: "GM-C2.09", nama: "FERIYADIE, SE", bulan: 2, uang: 550800, pelunasan: 0, tgl: " " },
@@ -354,7 +376,7 @@
 { unit: "GM-C2.15", nama: "MIRZA APRIZALDI", bulan: 3, uang: 826200, pelunasan: 0, tgl: " " },
 { unit: "GM-C2.16", nama: "ALIANSYAH", bulan: 3, uang: 826200, pelunasan: 0, tgl: " " },
 { unit: "GM-C2.17", nama: "KANCEL", bulan: 2, uang: 550800, pelunasan: 0, tgl: " " },
-{ unit: "GM-C2.18", nama: "ASRA", bulan: 6, uang: 1652400, pelunasan: 0, tgl: " " },
+{ unit: "GM-C2.18", nama: "ASRA", bulan: 6, uang: 1652400, pelunasan: 1652400, tgl: "2025-09-11" },
 { unit: "GM-C2.19", nama: "BAHRUL HADI", bulan: 3, uang: 826200, pelunasan: 0, tgl: " " },
 { unit: "GM-C2.20", nama: "SARBANI", bulan: 5, uang: 1377000, pelunasan: 0, tgl: " " },
 { unit: "GM-C2.21", nama: "ABDUL GANI", bulan: 4, uang: 1101600, pelunasan: 0, tgl: " " },
@@ -412,7 +434,7 @@
 { unit: "GM-C4.23", nama: "SAYUTI", bulan: 4, uang: 897600, pelunasan: 0, tgl: " " },
 { unit: "GM-C4.24", nama: " ", bulan: 0, uang: 0, pelunasan: 0, tgl: " " }
 
-];
+    ];
 
     function fmtUang(x) {
       return x.toLocaleString("id-ID");
@@ -424,7 +446,7 @@
       return "Belum Bayar";
     }
 
-    function renderTable(query = "", filterStatus = "") {
+    function renderTable(query = "", filterStatus = "", filterDate = "") {
       const tbody = document.querySelector("#tbl tbody");
       tbody.innerHTML = "";
 
@@ -438,6 +460,7 @@
 
         if (!rowText.includes(query.toLowerCase())) return;
         if (filterStatus && status !== filterStatus) return;
+        if (filterDate && d.tgl.trim() !== filterDate) return;
 
         totalBulan += d.bulan;
         totalUang += d.uang;
@@ -459,17 +482,33 @@
       document.getElementById("totalBulan").textContent = totalBulan;
       document.getElementById("totalUang").textContent = fmtUang(totalUang);
       document.getElementById("totalPelunasan").textContent = fmtUang(totalPelunasan);
+
+      // Update tabel statis
+      const sisa = totalUang - totalPelunasan;
+      document.getElementById("staticTotalUang").textContent = fmtUang(totalUang);
+      document.getElementById("staticTotalPelunasan").textContent = fmtUang(totalPelunasan);
+      document.getElementById("staticSisa").textContent = fmtUang(sisa);
     }
 
     const searchInput = document.getElementById("search");
     const statusFilter = document.getElementById("statusFilter");
+    const dateFilter = document.getElementById("dateFilter");
+    const btnReset = document.getElementById("btnReset");
 
     function updateTable() {
-      renderTable(searchInput.value, statusFilter.value);
+      renderTable(searchInput.value, statusFilter.value, dateFilter.value);
     }
 
     searchInput.addEventListener("input", updateTable);
     statusFilter.addEventListener("change", updateTable);
+    dateFilter.addEventListener("change", updateTable);
+
+    btnReset.addEventListener("click", () => {
+      searchInput.value = "";
+      statusFilter.value = "";
+      dateFilter.value = "";
+      renderTable();
+    });
 
     renderTable();
   </script>
