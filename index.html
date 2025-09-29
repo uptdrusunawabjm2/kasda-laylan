@@ -13,6 +13,9 @@
       --accent: #4f46e5;
       --line: #222734;
       --chip: #1b2030;
+      --row1: #13203a;
+      --row2: #1a2d24;
+      --row3: #2a1f3a;
     }
     * { box-sizing: border-box; }
     body { margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; background: var(--bg); color: var(--text); }
@@ -33,6 +36,10 @@
     th, td { padding: 10px 12px; border-bottom: 1px solid var(--line); white-space: nowrap; }
     tbody tr:hover { background: #0f1220; }
     tfoot td { font-weight: 700; background: #0e1220; }
+
+    .row1 { background: var(--row1); }
+    .row2 { background: var(--row2); }
+    .row3 { background: var(--row3); }
 
     .chip { background: var(--chip); border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px; font-size: 12px; display: inline-block; }
     .hint { font-size: 12px; color: var(--muted); margin-top: 8px; }
@@ -55,7 +62,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr>
+          <tr class="row1">
             <td id="staticTotalUang">0</td>
             <td id="staticTotalPelunasan">0</td>
             <td id="staticSisa">0</td>
@@ -75,10 +82,30 @@
           </tr>
         </thead>
         <tbody>
-          <tr>
+          <tr class="row2">
             <td id="staticSetor1">100.000.000</td>
             <td id="staticPelunasanSetor1">0</td>
             <td id="staticSisaSetor1">0</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Tabel Statis 3: Rekap Setor ke-2 -->
+    <div class="card table-wrap" style="margin-top:10px;">
+      <table>
+        <thead>
+          <tr>
+            <th>Setor ke-2</th>
+            <th>Total Pelunasan</th>
+            <th>Sisa Tunggakan Setor ke-2</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="row3">
+            <td id="staticSetor2">0</td>
+            <td id="staticPelunasanSetor2">0</td>
+            <td id="staticSisaSetor2">0</td>
           </tr>
         </tbody>
       </table>
@@ -121,14 +148,6 @@
             <td id="totalPelunasan">0</td>
             <td></td>
           </tr>
-          <tr>
-            <td colspan="2">TOTAL SETOR KE-1</td>
-            <td></td>
-            <td id="totalSetor1">100.000.000</td>
-            <td></td>
-            <td id="pelunasanSetor1">0</td>
-            <td id="sisaSetor1">100.000.000</td>
-          </tr>
         </tfoot>
       </table>
     </div>
@@ -138,7 +157,7 @@
 
   <script>
     const DATA = [
-    { unit: "GM-A1.01", nama: "AHMAD FADLIANSYAH (KELUAR)", bulan: 2, uang: 387600, pelunasan: 0, tgl: " " },
+{ unit: "GM-A1.01", nama: "AHMAD FADLIANSYAH (KELUAR)", bulan: 2, uang: 387600, pelunasan: 0, tgl: " " },
 { unit: "GM-A1.01", nama: "RAHMAD NOOR	", bulan: 0, uang: 0, pelunasan: 0, tgl: " " },
 { unit: "GM-A1.02", nama: "MUHAMMAD RAMLI", bulan: 1, uang: 193800, pelunasan: 0, tgl: " " },
 { unit: "GM-A1.03", nama: "FAISAL", bulan: 3, uang: 581400, pelunasan: 0, tgl: " " },
@@ -462,7 +481,6 @@
 { unit: "GM-C4.22", nama: "ZUHAIDA", bulan: 2, uang: 448800, pelunasan: 0, tgl: " " },
 { unit: "GM-C4.23", nama: "SAYUTI", bulan: 4, uang: 897600, pelunasan: 897600, tgl: "2025-09-18" },
 { unit: "GM-C4.24", nama: " ", bulan: 0, uang: 0, pelunasan: 0, tgl: " " },
-
     ];
 
     function fmtUang(x) {
@@ -531,10 +549,16 @@
       const sisaSetor1 = setor1 - totalPelunasan;
       document.getElementById("staticSisaSetor1").textContent = fmtUang(sisaSetor1);
 
-      // update setor ke-1 (baris 2 footer)
-      document.getElementById("totalSetor1").textContent = fmtUang(setor1);
-      document.getElementById("pelunasanSetor1").textContent = fmtUang(totalPelunasan);
-      document.getElementById("sisaSetor1").textContent = fmtUang(sisaSetor1);
+      // hitung setor ke-2 (nilai setor2 = setor1 - totalUang)
+      const setor2 = setor1 - totalUang;
+      document.getElementById("staticSetor2").textContent = fmtUang(setor2);
+
+      // total pelunasan baris 3 dihitung sama: setor1 - totalUang
+      const pelunasanSetor2 = setor1 - totalUang;
+      document.getElementById("staticPelunasanSetor2").textContent = fmtUang(pelunasanSetor2);
+
+      const sisaSetor2 = setor2 - pelunasanSetor2;
+      document.getElementById("staticSisaSetor2").textContent = fmtUang(sisaSetor2);
     }
 
     // event filter
