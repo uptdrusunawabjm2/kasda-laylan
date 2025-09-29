@@ -18,7 +18,7 @@
       --row3: #2a1f3a;
     }
     * { box-sizing: border-box; }
-    body { margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; background: var(--bg); color: var(--text); }
+    body { margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial; background: var(--bg); color: var(--text); }
     .wrap { max-width: 1100px; margin: 32px auto; padding: 0 16px; }
     .title { font-size: clamp(22px, 4vw, 30px); font-weight: 700; letter-spacing: .2px; }
     .sub { color: var(--muted); margin-top: 6px; }
@@ -51,7 +51,7 @@
     <div class="title">TEST/CONTOH DARI 100<span class="chip">update–29-09-2025</span></div>
     <div class="sub"><em>data ini bersifat dinamis mengikuti kondisi terkini</em></div>
 
-    <!-- Tabel Statis 1: Rekap Tunggakan -->
+    <!-- Rekap 1 -->
     <div class="card table-wrap">
       <table>
         <thead>
@@ -71,7 +71,7 @@
       </table>
     </div>
 
-    <!-- Tabel Statis 2: Rekap Setor ke-1 -->
+    <!-- Rekap 2 -->
     <div class="card table-wrap" style="margin-top:10px;">
       <table>
         <thead>
@@ -82,6 +82,7 @@
           </tr>
         </thead>
         <tbody>
+          <!-- Kolom 1 (Setor ke-1) dibiarkan sebagai nilai dasar (mis. 100.000.000) -->
           <tr class="row2">
             <td id="staticSetor1">100.000.000</td>
             <td id="staticPelunasanSetor1">0</td>
@@ -91,7 +92,7 @@
       </table>
     </div>
 
-    <!-- Tabel Statis 3: Rekap Setor ke-2 -->
+    <!-- Rekap 3 -->
     <div class="card table-wrap" style="margin-top:10px;">
       <table>
         <thead>
@@ -120,7 +121,10 @@
         <option value="Sebagian">Sebagian</option>
         <option value="Belum Bayar">Belum Bayar</option>
       </select>
-      <input id="dateFilter" type="date" class="input" />
+      <!-- Dropdown tanggal -->
+      <select id="dateFilter" class="select">
+        <option value="">Semua Tanggal</option>
+      </select>
       <button id="btnReset" class="btn">Reset</button>
     </div>
 
@@ -152,12 +156,12 @@
       </table>
     </div>
 
-    <div class="hint">CATATAN: TIDAK UNTUK DIBAGIKAN<code></code></div>
+    <div class="hint">CATATAN: Versi contoh dengan data dummy</div>
   </div>
 
   <script>
     const DATA = [
-{ unit: "GM-A1.01", nama: "AHMAD FADLIANSYAH (KELUAR)", bulan: 2, uang: 387600, pelunasan: 0, tgl: " " },
+      { unit: "GM-A1.01", nama: "AHMAD FADLIANSYAH (KELUAR)", bulan: 2, uang: 387600, pelunasan: 0, tgl: " " },
 { unit: "GM-A1.01", nama: "RAHMAD NOOR	", bulan: 0, uang: 0, pelunasan: 0, tgl: " " },
 { unit: "GM-A1.02", nama: "MUHAMMAD RAMLI", bulan: 1, uang: 193800, pelunasan: 0, tgl: " " },
 { unit: "GM-A1.03", nama: "FAISAL", bulan: 3, uang: 581400, pelunasan: 0, tgl: " " },
@@ -481,10 +485,22 @@
 { unit: "GM-C4.22", nama: "ZUHAIDA", bulan: 2, uang: 448800, pelunasan: 0, tgl: " " },
 { unit: "GM-C4.23", nama: "SAYUTI", bulan: 4, uang: 897600, pelunasan: 897600, tgl: "2025-09-18" },
 { unit: "GM-C4.24", nama: " ", bulan: 0, uang: 0, pelunasan: 0, tgl: " " },
+
     ];
 
+    // === Isi dropdown tanggal ===
+    const dateSelect = document.getElementById("dateFilter");
+    const uniqueDates = [...new Set(DATA.map(d => d.tgl).filter(d => d.trim() !== ""))].sort();
+    uniqueDates.forEach(d => {
+      const opt = document.createElement("option");
+      opt.value = d;
+      opt.textContent = d;
+      dateSelect.appendChild(opt);
+    });
+
     function fmtUang(x) {
-      return x.toLocaleString("id-ID");
+      // gunakan absolute formatting dengan tanda negatif jika ada
+      return Number(x).toLocaleString("id-ID");
     }
 
     function getStatus(row) {
@@ -494,12 +510,18 @@
       return "Belum Bayar";
     }
 
+    function parseCellNumber(str) {
+      // ambil angka dari teks (menghilangkan titik/format ribuan)
+      if (!str) return 0;
+      const num = parseInt(String(str).replace(/[^\d\-]/g, ''), 10);
+      return Number.isNaN(num) ? 0 : num;
+    }
+
     function renderTable() {
       const tbody = document.querySelector("#tbl tbody");
       tbody.innerHTML = "";
       let totalBulan = 0, totalUang = 0, totalPelunasan = 0;
 
-      // ambil filter
       const q = document.getElementById("search").value.toLowerCase();
       const statusF = document.getElementById("statusFilter").value;
       const dateF = document.getElementById("dateFilter").value;
@@ -512,56 +534,48 @@
         return matchQ && matchS && matchD;
       }).forEach(row => {
         const tr = document.createElement("tr");
-        const status = getStatus(row);
         tr.innerHTML = `
           <td>${row.unit}</td>
           <td>${row.nama}</td>
           <td>${row.bulan}</td>
           <td>${fmtUang(row.uang)}</td>
-          <td>${status}</td>
+          <td>${getStatus(row)}</td>
           <td>${fmtUang(row.pelunasan)}</td>
           <td>${row.tgl}</td>
         `;
         tbody.appendChild(tr);
-
-        totalBulan += row.bulan;
-        totalUang += row.uang;
-        totalPelunasan += row.pelunasan;
+        totalBulan += Number(row.bulan) || 0;
+        totalUang += Number(row.uang) || 0;
+        totalPelunasan += Number(row.pelunasan) || 0;
       });
 
+      // update total bawah tabel
       document.getElementById("totalBulan").textContent = totalBulan;
       document.getElementById("totalUang").textContent = fmtUang(totalUang);
       document.getElementById("totalPelunasan").textContent = fmtUang(totalPelunasan);
 
-      updateRekap(totalPelunasan, totalUang);
-    }
-
-    function updateRekap(totalPelunasan, totalUang) {
-      // update rekap utama
+      // update ringkasan atas
       document.getElementById("staticTotalUang").textContent = fmtUang(totalUang);
       document.getElementById("staticTotalPelunasan").textContent = fmtUang(totalPelunasan);
       document.getElementById("staticSisa").textContent = fmtUang(totalUang - totalPelunasan);
 
-      // update setor ke-1 (bagian atas)
-      const setor1 = 100000000;
-      document.getElementById("staticSetor1").textContent = fmtUang(setor1);
+      // Ambil nilai Setor ke-1 (kolom 1 baris 2) dari cell #staticSetor1 (sesuai permintaan)
+      const staticSetor1Text = document.getElementById("staticSetor1").textContent || "";
+      const setor1Num = parseCellNumber(staticSetor1Text); // ambil angka dari tampilan, mis. "100.000.000" -> 100000000
+
+      // update kolom pelunasan dan sisa untuk Setor ke-1
       document.getElementById("staticPelunasanSetor1").textContent = fmtUang(totalPelunasan);
-      const sisaSetor1 = setor1 - totalPelunasan;
-      document.getElementById("staticSisaSetor1").textContent = fmtUang(sisaSetor1);
+      document.getElementById("staticSisaSetor1").textContent = fmtUang(setor1Num - totalPelunasan);
 
-      // hitung setor ke-2 (nilai setor2 = setor1 - totalUang)
-      const setor2 = setor1 - totalUang;
-      document.getElementById("staticSetor2").textContent = fmtUang(setor2);
+      // Setor ke-2 (kolom 1 baris 3) = Setor ke-1 (kolom 1 baris 2) - Total Tunggakan (baris 1 kolom 1)
+      const setor2Num = setor1Num - totalUang;
+      document.getElementById("staticSetor2").textContent = fmtUang(setor2Num);
 
-      // total pelunasan baris 3 dihitung sama: setor1 - totalUang
-      const pelunasanSetor2 = setor1 - totalUang;
-      document.getElementById("staticPelunasanSetor2").textContent = fmtUang(pelunasanSetor2);
-
-      const sisaSetor2 = setor2 - pelunasanSetor2;
-      document.getElementById("staticSisaSetor2").textContent = fmtUang(sisaSetor2);
+      // kolom pelunasan dan sisa untuk Setor ke-2
+      document.getElementById("staticPelunasanSetor2").textContent = fmtUang(totalPelunasan);
+      document.getElementById("staticSisaSetor2").textContent = fmtUang(setor2Num - totalPelunasan);
     }
 
-    // event filter
     document.getElementById("search").addEventListener("input", renderTable);
     document.getElementById("statusFilter").addEventListener("change", renderTable);
     document.getElementById("dateFilter").addEventListener("change", renderTable);
