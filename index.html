@@ -82,7 +82,6 @@
           </tr>
         </thead>
         <tbody>
-          <!-- Kolom 1 (Setor ke-1) dibiarkan sebagai nilai dasar (mis. 100.000.000) -->
           <tr class="row2">
             <td id="staticSetor1">100.000.000</td>
             <td id="staticPelunasanSetor1">0</td>
@@ -121,7 +120,6 @@
         <option value="Sebagian">Sebagian</option>
         <option value="Belum Bayar">Belum Bayar</option>
       </select>
-      <!-- Dropdown tanggal -->
       <select id="dateFilter" class="select">
         <option value="">Semua Tanggal</option>
       </select>
@@ -142,7 +140,7 @@
             <th>Tanggal Pelunasan</th>
           </tr>
         </thead>
-        <tbody></tbody>
+        <tbody id="tbodyData"></tbody>
         <tfoot>
           <tr>
             <td colspan="2">TOTAL</td>
@@ -161,7 +159,7 @@
 
   <script>
     const DATA = [
-{ unit: "GM-A1.01", nama: "AHMAD FADLIANSYAH (KELUAR)", bulan: 2, uang: 387600, pelunasan: 0, tgl: "" },
+      { unit: "GM-A1.01", nama: "AHMAD FADLIANSYAH (KELUAR)", bulan: 2, uang: 387600, pelunasan: 0, tgl: "" },
 { unit: "GM-A1.01", nama: "RAHMAD NOOR	", bulan: 0, uang: 0, pelunasan: 0, tgl: "" },
 { unit: "GM-A1.02", nama: "MUHAMMAD RAMLI", bulan: 0, uang: 0, pelunasan: 0, tgl: "" },
 { unit: "GM-A1.03", nama: "FAISAL", bulan: 3, uang: 581400, pelunasan: 581400, tgl: "2025-10-02" },
@@ -487,92 +485,86 @@
 { unit: "GM-C4.24", nama: " ", bulan: 0, uang: 0, pelunasan: 0, tgl: "" },
     ];
 
-    // === Isi dropdown tanggal ===
-    const dateSelect = document.getElementById("dateFilter");
-    const uniqueDates = [...new Set(DATA.map(d => d.tgl).filter(d => d.trim() !== ""))].sort();
-    uniqueDates.forEach(d => {
-      const opt = document.createElement("option");
-      opt.value = d;
-      opt.textContent = d;
-      dateSelect.appendChild(opt);
-    });
-
     function fmtUang(x) {
-      // gunakan absolute formatting dengan tanda negatif jika ada
       return Number(x).toLocaleString("id-ID");
     }
 
-    function getStatus(row) {
-      if (row.uang === 0) return "Belum Bayar";
-      if (row.pelunasan >= row.uang) return "Lunas";
-      if (row.pelunasan > 0) return "Sebagian";
-      return "Belum Bayar";
+    function applyFilters(data) {
+      const searchVal = document.getElementById("search").value.toLowerCase();
+      const statusVal = document.getElementById("statusFilter").value;
+      const dateVal = document.getElementById("dateFilter").value;
+
+      return data.filter(d => {
+        const matchSearch = d.unit.toLowerCase().includes(searchVal) || d.nama.toLowerCase().includes(searchVal);
+        let status = d.pelunasan >= d.uang && d.uang > 0 ? "Lunas" : d.pelunasan === 0 ? "Belum Bayar" : "Sebagian";
+        const matchStatus = !statusVal || status === statusVal;
+        const matchDate = !dateVal || d.tgl === dateVal;
+        return matchSearch && matchStatus && matchDate;
+      });
     }
 
-    function parseCellNumber(str) {
-      // ambil angka dari teks (menghilangkan titik/format ribuan)
-      if (!str) return 0;
-      const num = parseInt(String(str).replace(/[^\d\-]/g, ''), 10);
-      return Number.isNaN(num) ? 0 : num;
+    function populateDateFilter() {
+      const dates = [...new Set(DATA.map(d => d.tgl).filter(x => x))];
+      dates.sort((a,b) => new Date(a) - new Date(b));
+      const select = document.getElementById("dateFilter");
+      dates.forEach(dt => {
+        const opt = document.createElement("option");
+        opt.value = dt;
+        opt.textContent = dt;
+        select.appendChild(opt);
+      });
     }
 
     function renderTable() {
-      const tbody = document.querySelector("#tbl tbody");
+      const tbody = document.getElementById("tbodyData");
       tbody.innerHTML = "";
-      let totalBulan = 0, totalUang = 0, totalPelunasan = 0;
 
-      const q = document.getElementById("search").value.toLowerCase();
-      const statusF = document.getElementById("statusFilter").value;
-      const dateF = document.getElementById("dateFilter").value;
+      let totalBulan = 0;
+      let totalUang = 0;
+      let totalPelunasan = 0;
 
-      DATA.filter(row => {
-        const status = getStatus(row);
-        const matchQ = row.unit.toLowerCase().includes(q) || row.nama.toLowerCase().includes(q);
-        const matchS = !statusF || status === statusF;
-        const matchD = !dateF || row.tgl === dateF;
-        return matchQ && matchS && matchD;
-      }).forEach(row => {
+      applyFilters(DATA).forEach(d => {
         const tr = document.createElement("tr");
         tr.innerHTML = `
-          <td>${row.unit}</td>
-          <td>${row.nama}</td>
-          <td>${row.bulan}</td>
-          <td>${fmtUang(row.uang)}</td>
-          <td>${getStatus(row)}</td>
-          <td>${fmtUang(row.pelunasan)}</td>
-          <td>${row.tgl}</td>
+          <td>${d.unit}</td>
+          <td>${d.nama}</td>
+          <td>${d.bulan}</td>
+          <td>${fmtUang(d.uang)}</td>
+          <td>${d.pelunasan >= d.uang && d.uang > 0 ? "Lunas" : d.pelunasan === 0 ? "Belum Bayar" : "Sebagian"}</td>
+          <td>${fmtUang(d.pelunasan)}</td>
+          <td>${d.tgl}</td>
         `;
         tbody.appendChild(tr);
-        totalBulan += Number(row.bulan) || 0;
-        totalUang += Number(row.uang) || 0;
-        totalPelunasan += Number(row.pelunasan) || 0;
+
+        totalBulan += d.bulan;
+        totalUang += d.uang;
+        totalPelunasan += d.pelunasan;
       });
 
-      // update total bawah tabel
       document.getElementById("totalBulan").textContent = totalBulan;
       document.getElementById("totalUang").textContent = fmtUang(totalUang);
       document.getElementById("totalPelunasan").textContent = fmtUang(totalPelunasan);
 
-      // update ringkasan atas
+      // Rekap 1
       document.getElementById("staticTotalUang").textContent = fmtUang(totalUang);
       document.getElementById("staticTotalPelunasan").textContent = fmtUang(totalPelunasan);
       document.getElementById("staticSisa").textContent = fmtUang(totalUang - totalPelunasan);
 
-      // Ambil nilai Setor ke-1 (kolom 1 baris 2) dari cell #staticSetor1 (sesuai permintaan)
-      const staticSetor1Text = document.getElementById("staticSetor1").textContent || "";
-      const setor1Num = parseCellNumber(staticSetor1Text); // ambil angka dari tampilan, mis. "100.000.000" -> 100000000
-
-      // update kolom pelunasan dan sisa untuk Setor ke-1
+      // Rekap 2
+      const setor1Num = 100000000;
       document.getElementById("staticPelunasanSetor1").textContent = fmtUang(totalPelunasan);
       document.getElementById("staticSisaSetor1").textContent = fmtUang(setor1Num - totalPelunasan);
 
-      // Setor ke-2 (kolom 1 baris 3) = Setor ke-1 (kolom 1 baris 2) - Total Tunggakan (baris 1 kolom 1)
-      const setor2Num = setor1Num - totalUang;
-      document.getElementById("staticSetor2").textContent = fmtUang(setor2Num);
+      // Rekap 3
+      const totalTunggakanBar1 = totalUang;
+      const totalPelunasanBar1 = totalPelunasan;
+      const sisaTunggakanBar1 = totalTunggakanBar1 - totalPelunasanBar1;
 
-      // kolom pelunasan dan sisa untuk Setor ke-2
-      document.getElementById("staticPelunasanSetor2").textContent = fmtUang(totalPelunasan);
-      document.getElementById("staticSisaSetor2").textContent = fmtUang(setor2Num - totalPelunasan);
+      // Setor ke-2 = Sisa Tunggakan baris 1 kolom 3
+      document.getElementById("staticSetor2").textContent = fmtUang(sisaTunggakanBar1);
+      document.getElementById("staticPelunasanSetor2").textContent = fmtUang(totalPelunasanBar1);
+      // Sisa Tunggakan Setor ke-2 = Total Tunggakan (baris 1 kolom 1) - Total Pelunasan (baris 1 kolom 2)
+      document.getElementById("staticSisaSetor2").textContent = fmtUang(totalTunggakanBar1 - totalPelunasanBar1);
     }
 
     document.getElementById("search").addEventListener("input", renderTable);
@@ -585,6 +577,7 @@
       renderTable();
     });
 
+    populateDateFilter();
     renderTable();
   </script>
 </body>
